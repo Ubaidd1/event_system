@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { invitationService } from '../services/invitationService';
 import { guestService } from '../services/guestService';
 import { familyService } from '../services/familyService';
+import { eventService } from '../services/eventService';
 import Modal from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import EmptyState from '../components/common/EmptyState';
@@ -15,13 +16,15 @@ import {
   Copy,
   ExternalLink,
   Check,
-  Award
+  Award,
+  Calendar
 } from 'lucide-react';
 
 const Invitations = () => {
   const [invitations, setInvitations] = useState([]);
   const [guests, setGuests] = useState([]);
   const [families, setFamilies] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +35,7 @@ const Invitations = () => {
     recipientType: 'guest', // 'guest' or 'family'
     guestId: '',
     familyId: '',
+    eventId: '',
     templateStyle: 'Royal Gold',
     title: 'Together with their families',
     customMessage: 'We request the pleasure of your company to celebrate our wedding celebration.'
@@ -40,14 +44,16 @@ const Invitations = () => {
   const fetchInitialData = async () => {
     try {
       setLoading(true);
-      const [invRes, gRes, fRes] = await Promise.all([
+      const [invRes, gRes, fRes, eRes] = await Promise.all([
         invitationService.getInvitations(),
         guestService.getGuests(),
-        familyService.getFamilies()
+        familyService.getFamilies(),
+        eventService.getEvents()
       ]);
       setInvitations(invRes.data || []);
       setGuests(gRes.data.guests || []);
       setFamilies(fRes.data || []);
+      setEvents(eRes.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -64,6 +70,7 @@ const Invitations = () => {
       recipientType: 'guest',
       guestId: guests[0]?._id || '',
       familyId: families[0]?._id || '',
+      eventId: events[0]?._id || '',
       templateStyle: 'Royal Gold',
       title: 'Together with their families',
       customMessage: 'We request the pleasure of your company to celebrate our wedding celebration.'
@@ -75,6 +82,7 @@ const Invitations = () => {
     e.preventDefault();
     try {
       const payload = {
+        eventId: formData.eventId,
         templateStyle: formData.templateStyle,
         title: formData.title,
         customMessage: formData.customMessage
@@ -150,6 +158,12 @@ const Invitations = () => {
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-gold-300 border border-amber-500/20">
                     {inv.templateStyle}
                   </span>
+                  {inv.event && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 flex items-center space-x-1">
+                      <Calendar className="w-3 h-3 text-emerald-400" />
+                      <span>{inv.event.name}</span>
+                    </span>
+                  )}
                   <div className="flex items-center space-x-1">
                     <button
                       onClick={() => setPreviewInvite(inv)}
@@ -279,6 +293,22 @@ const Invitations = () => {
                 ))}
               </select>
             )}
+          </div>
+
+          <div>
+            <label className="block font-semibold uppercase text-gray-300 mb-1">Target Event Pass *</label>
+            <select
+              value={formData.eventId}
+              onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
+              className="w-full p-2.5 bg-charcoal-800 border border-amber-500/20 rounded-xl text-white font-serif font-semibold focus:outline-none focus:border-amber-500"
+            >
+              {events.map((ev) => (
+                <option key={ev._id} value={ev._id}>
+                  {ev.name} ({ev.venue})
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-400 mt-1">Each event requires its own unique event-specific QR pass code.</p>
           </div>
 
           <div>

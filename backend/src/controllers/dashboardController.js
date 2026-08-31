@@ -10,6 +10,8 @@ const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 
 const getDashboardStats = asyncHandler(async (req, res) => {
+  const { eventId } = req.query;
+
   let wedding = await Wedding.findOne();
   if (!wedding) {
     wedding = await Wedding.create({
@@ -21,36 +23,46 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     });
   }
 
+  // All events list for dropdown
+  const allEvents = await Event.find({ wedding: wedding._id }).sort({ date: 1 });
+
+  // Guest query filtering
+  const guestQuery = { wedding: wedding._id };
+  if (eventId && eventId !== 'all') {
+    guestQuery.events = eventId;
+  }
+
+  // Check-In query filtering
+  const checkInQuery = { wedding: wedding._id };
+  if (eventId && eventId !== 'all') {
+    checkInQuery.event = eventId;
+  }
+
+  // Invitation query filtering
+  const invitationQuery = { wedding: wedding._id };
+  if (eventId && eventId !== 'all') {
+    invitationQuery.event = eventId;
+  }
+
   // Guests RSVP counts
-  const totalGuests = await Guest.countDocuments({ wedding: wedding._id });
-  const confirmedRSVP = await Guest.countDocuments({ wedding: wedding._id, rsvpStatus: 'Confirmed' });
-  const pendingRSVP = await Guest.countDocuments({ wedding: wedding._id, rsvpStatus: 'Pending' });
-  const declinedRSVP = await Guest.countDocuments({ wedding: wedding._id, rsvpStatus: 'Declined' });
+  const totalGuests = await Guest.countDocuments(guestQuery);
+  const confirmedRSVP = await Guest.countDocuments({ ...guestQuery, rsvpStatus: 'Confirmed' });
+  const pendingRSVP = await Guest.countDocuments({ ...guestQuery, rsvpStatus: 'Pending' });
+  const declinedRSVP = await Guest.countDocuments({ ...guestQuery, rsvpStatus: 'Declined' });
 
   // Invitations
-  const totalInvitations = await Invitation.countDocuments({ wedding: wedding._id });
+  const totalInvitations = await Invitation.countDocuments(invitationQuery);
 
   // Check-ins total
-  const totalCheckIns = await CheckIn.countDocuments({ wedding: wedding._id });
+  const totalCheckIns = await CheckIn.countDocuments(checkInQuery);
 
   // Financial Stats
   const expenses = await Expense.find({ wedding: wedding._id });
   const totalSpent = expenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
-
-  const vendors = await Vendor.find({ wedding: wedding._id });
-  const pendingVendorPayments = vendors
-    .filter(v => v.paymentStatus === 'Pending' || v.paymentStatus === 'Partially Paid')
-    .reduce((acc, curr) => acc + (curr.contractAmount - curr.amountPaid), 0);
-
   const remainingBudget = wedding.totalBudget - totalSpent;
 
-  // Upcoming events
-  const upcomingEvents = await Event.find({ wedding: wedding._id })
-    .sort({ date: 1 })
-    .limit(4);
-
-  // Recent Check-In activity
-  const recentCheckIns = await CheckIn.find({ wedding: wedding._id })
+  // Recent Check-In activity for selected filter
+  const recentCheckIns = await CheckIn.find(checkInQuery)
     .populate('guest', 'name category')
     .populate('event', 'name venue')
     .sort({ createdAt: -1 })
@@ -83,6 +95,8 @@ const getDashboardStats = asyncHandler(async (req, res) => {
       200,
       {
         wedding,
+        allEvents,
+        selectedEventId: eventId || 'all',
         metrics: {
           totalGuests,
           confirmedRSVP,
@@ -92,10 +106,9 @@ const getDashboardStats = asyncHandler(async (req, res) => {
           totalCheckIns,
           totalBudget: wedding.totalBudget,
           totalSpent,
-          remainingBudget,
-          pendingVendorPayments
+          remainingBudget
         },
-        upcomingEvents,
+        upcomingEvents: allEvents,
         recentCheckIns,
         recentLogs,
         expenseChartData,

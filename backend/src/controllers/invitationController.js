@@ -14,21 +14,41 @@ const getInvitations = asyncHandler(async (req, res) => {
   const invitations = await Invitation.find({ wedding: wedding._id })
     .populate('guest', 'name email category rsvpStatus')
     .populate('family', 'name headContact')
+    .populate('event', 'name date venue')
     .sort({ createdAt: -1 });
 
   return res.status(200).json(new ApiResponse(200, invitations, 'Invitations retrieved successfully'));
 });
 
 const createInvitation = asyncHandler(async (req, res) => {
-  const { guestId, familyId, templateStyle, title, customMessage, posterUrl } = req.body;
+  const { guestId, familyId, eventId, templateStyle, title, customMessage, posterUrl } = req.body;
   const wedding = await Wedding.findOne();
 
   if (!guestId && !familyId) {
     throw new ApiError(400, 'Either guestId or familyId is required for an invitation');
   }
 
-  // Check if invitation already exists for this guest/family
-  const query = { wedding: wedding._id };
+  // Determine target event
+  let targetEventId = eventId;
+  if (!targetEventId) {
+    if (guestId) {
+      const guestObj = await Guest.findById(guestId);
+      if (guestObj && guestObj.events && guestObj.events.length > 0) {
+        targetEventId = guestObj.events[0];
+      }
+    }
+    if (!targetEventId) {
+      const firstEvent = await Event.findOne({ wedding: wedding._id }).sort({ date: 1 });
+      if (firstEvent) targetEventId = firstEvent._id;
+    }
+  }
+
+  if (!targetEventId) {
+    throw new ApiError(400, 'An event must exist to create an event-specific QR pass');
+  }
+
+  // Check if invitation already exists for this (guest/family + event) combination
+  const query = { wedding: wedding._id, event: targetEventId };
   if (guestId) query.guest = guestId;
   if (familyId) query.family = familyId;
 
@@ -49,6 +69,7 @@ const createInvitation = asyncHandler(async (req, res) => {
       wedding: wedding._id,
       guest: guestId || null,
       family: familyId || null,
+      event: targetEventId,
       secureToken,
       templateStyle: templateStyle || 'Royal Gold',
       title: title || 'Wedding Celebration Invitation',
@@ -60,19 +81,20 @@ const createInvitation = asyncHandler(async (req, res) => {
 
   const populated = await Invitation.findById(invitation._id)
     .populate('guest', 'name email category rsvpStatus')
-    .populate('family', 'name headContact');
+    .populate('family', 'name headContact')
+    .populate('event', 'name date venue');
 
   await ActivityLog.create({
     wedding: wedding._id,
     user: req.user._id,
     userName: req.user.name,
     userRole: req.user.role,
-    action: 'Generated Invitation',
+    action: 'Generated Event Pass',
     entityType: 'Invitation',
-    details: `${req.user.name} generated secure QR invitation ${invitation.secureToken}`
+    details: `${req.user.name} generated event pass ${invitation.secureToken} for event '${populated.event?.name}'`
   });
 
-  return res.status(201).json(new ApiResponse(201, populated, 'Invitation generated successfully'));
+  return res.status(201).json(new ApiResponse(201, populated, 'Event-specific invitation generated successfully'));
 });
 
 const getPublicInvitationByToken = asyncHandler(async (req, res) => {
@@ -80,7 +102,8 @@ const getPublicInvitationByToken = asyncHandler(async (req, res) => {
 
   const invitation = await Invitation.findOne({ secureToken: token })
     .populate('guest', 'name category allowedPlusOnes plusOnesAssigned rsvpStatus events')
-    .populate('family', 'name headContact');
+    .populate('family', 'name headContact')
+    .populate('event', 'name date startTime endTime venue address description dressCode');
 
   if (!invitation) {
     throw new ApiError(404, 'Invalid or expired invitation token');
@@ -93,13 +116,10 @@ const getPublicInvitationByToken = asyncHandler(async (req, res) => {
 
   const wedding = await Wedding.findById(invitation.wedding).select('coupleNames title weddingDate coverImage currency');
 
-  // Fetch event details for assigned events
-  let eventDetails = [];
-  if (invitation.guest && invitation.guest.events && invitation.guest.events.length > 0) {
-    eventDetails = await Event.find({ _id: { $in: invitation.guest.events } }).select('name date startTime endTime venue address description dressCode');
-  } else {
-    // Default all wedding events if no specific event assigned
-    eventDetails = await Event.find({ wedding: wedding._id }).select('name date startTime endTime venue address description dressCode');
+  // Fetch target event details
+  let targetEvent = invitation.event;
+  if (!targetEvent) {
+    targetEvent = await Event.findOne({ wedding: wedding._id }).select('name date startTime endTime venue address description dressCode');
   }
 
   // Fetch family members if family invitation
@@ -124,7 +144,8 @@ const getPublicInvitationByToken = asyncHandler(async (req, res) => {
         rsvpStatus: invitation.guest?.rsvpStatus || 'Pending',
         allowedPlusOnes: invitation.guest?.allowedPlusOnes || 1,
         plusOnesAssigned: invitation.guest?.plusOnesAssigned || 0,
-        events: eventDetails,
+        event: targetEvent,
+        events: targetEvent ? [targetEvent] : [],
         familyMembers
       },
       'Public invitation retrieved'

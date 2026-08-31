@@ -279,6 +279,20 @@ const QRCheckIn = () => {
                 </div>
               )}
 
+              {/* EVENT MISMATCH RESULT */}
+              {verificationResult.status === 'EVENT_MISMATCH' && (
+                <div className="p-5 bg-rose-500/10 border-2 border-rose-500/50 rounded-2xl space-y-3 text-center">
+                  <ShieldAlert className="w-12 h-12 text-rose-400 mx-auto" />
+                  <h3 className="text-xl font-serif font-bold text-rose-400">⚠ Event Pass Mismatch!</h3>
+                  <p className="text-xs text-rose-200 font-semibold">{verificationResult.message}</p>
+                  <div className="p-3 bg-charcoal-800 rounded-xl text-xs space-y-1.5 text-gray-300 text-left border border-white/10">
+                    <p>Guest Name: <strong className="text-white">{verificationResult.invitation?.guestName}</strong></p>
+                    <p>Pass Issued For: <strong className="text-gold-300">{verificationResult.passEvent?.name}</strong></p>
+                    <p>Active Entrance: <strong className="text-rose-400">{verificationResult.scannerEvent?.name}</strong></p>
+                  </div>
+                </div>
+              )}
+
               {/* INVALID RESULT */}
               {verificationResult.status === 'INVALID' && (
                 <div className="p-4 bg-rose-500/10 border-2 border-rose-500/40 rounded-2xl space-y-3 text-center">

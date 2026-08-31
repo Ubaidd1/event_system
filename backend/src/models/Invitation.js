@@ -16,6 +16,11 @@ const invitationSchema = new mongoose.Schema({
     ref: 'Family',
     default: null
   },
+  event: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+    default: null
+  },
   secureToken: {
     type: String,
     required: true,

@@ -13,10 +13,11 @@ const verifyQRToken = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'QR Token is required');
   }
 
-  // Find invitation by secureToken
+  // Find invitation by secureToken with populated guest, family, and event
   const invitation = await Invitation.findOne({ secureToken: token })
     .populate('guest')
-    .populate('family');
+    .populate('family')
+    .populate('event');
 
   if (!invitation) {
     return res.status(200).json(
@@ -25,47 +26,49 @@ const verifyQRToken = asyncHandler(async (req, res) => {
         {
           valid: false,
           status: 'INVALID',
-          message: 'Invalid QR Code. This invitation token could not be verified in the system.'
+          message: 'Invalid QR Code. This invitation pass token could not be verified in the system.'
         },
         'QR verification processed'
       )
     );
   }
 
-  // Determine target event
-  let event = null;
+  // Target scanner event
+  let scannerEvent = null;
   if (eventId) {
-    event = await Event.findById(eventId);
+    scannerEvent = await Event.findById(eventId);
+  } else if (invitation.event) {
+    scannerEvent = invitation.event;
   } else {
-    // If eventId not provided, select the closest upcoming event
-    event = await Event.findOne({ wedding: invitation.wedding }).sort({ date: 1 });
+    scannerEvent = await Event.findOne({ wedding: invitation.wedding }).sort({ date: 1 });
   }
 
-  if (!event) {
+  if (!scannerEvent) {
     throw new ApiError(404, 'No valid event found for verification');
   }
 
-  // Check if guest or family is assigned to this event
-  const isGuestAssigned = invitation.guest
-    ? invitation.guest.events.some(eId => eId.toString() === event._id.toString()) || invitation.guest.events.length === 0
-    : true;
-
-  if (!isGuestAssigned) {
+  // ENFORCE EVENT-SPECIFIC QR PASS MATCHING:
+  // If the QR pass was issued for a specific event and scanner is set to another event:
+  if (invitation.event && scannerEvent._id.toString() !== invitation.event._id.toString()) {
     return res.status(200).json(
       new ApiResponse(
         200,
         {
           valid: false,
-          status: 'NOT_INVITED',
-          message: `Guest is not registered/invited for event '${event.name}'.`,
+          status: 'EVENT_MISMATCH',
+          message: `QR Pass Mismatch! This pass was issued specifically for '${invitation.event.name}' and cannot be used for '${scannerEvent.name}'.`,
+          passEvent: {
+            id: invitation.event._id,
+            name: invitation.event.name
+          },
+          scannerEvent: {
+            id: scannerEvent._id,
+            name: scannerEvent.name
+          },
           invitation: {
             token: invitation.secureToken,
             guestName: invitation.guest?.name || invitation.family?.name || 'Guest',
             category: invitation.guest?.category || 'VIP'
-          },
-          event: {
-            id: event._id,
-            name: event.name
           }
         },
         'QR verification processed'

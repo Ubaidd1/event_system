@@ -48,10 +48,12 @@ const Dashboard = () => {
   });
   const [savingWedding, setSavingWedding] = useState(false);
 
-  const fetchDashboardData = async () => {
+  const [selectedEventFilter, setSelectedEventFilter] = useState('all');
+
+  const fetchDashboardData = async (filterId = selectedEventFilter) => {
     try {
       setLoading(true);
-      const res = await dashboardService.getStats();
+      const res = await dashboardService.getStats({ eventId: filterId });
       setData(res.data);
     } catch (err) {
       setError(err.message || 'Failed to load dashboard statistics.');
@@ -115,10 +117,34 @@ const Dashboard = () => {
       <div className="glass-card p-6 md:p-8 rounded-3xl relative overflow-hidden border border-amber-500/20 bg-gradient-to-r from-charcoal-800 via-charcoal-800 to-amber-950/20">
         <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-gold-300 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 fill-current" />
-              <span>Official Event & Wedding Dashboard</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-gold-300 text-xs font-semibold">
+                <Sparkles className="w-3.5 h-3.5 fill-current" />
+                <span>Official Event Dashboard</span>
+              </div>
+
+              {/* Dynamic Event Selector */}
+              <div className="inline-flex items-center space-x-2 bg-charcoal-900/90 px-3 py-1 rounded-full border border-amber-500/30 text-xs shadow-md">
+                <Calendar className="w-3.5 h-3.5 text-gold-400" />
+                <span className="font-semibold text-gray-400">View Event:</span>
+                <select
+                  value={selectedEventFilter}
+                  onChange={(e) => {
+                    setSelectedEventFilter(e.target.value);
+                    fetchDashboardData(e.target.value);
+                  }}
+                  className="bg-transparent font-serif font-bold text-gold-300 focus:outline-none cursor-pointer"
+                >
+                  <option value="all" className="bg-charcoal-900 text-white">All Events (Combined)</option>
+                  {data?.allEvents && data.allEvents.map((ev) => (
+                    <option key={ev._id} value={ev._id} className="bg-charcoal-900 text-white">
+                      {ev.name} ({ev.venue})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+
             <div className="flex items-center space-x-3">
               <h1 className="text-3xl lg:text-4xl font-serif font-bold text-white tracking-wide">
                 {data.wedding?.coupleNames || 'Couple / Host Name'}
