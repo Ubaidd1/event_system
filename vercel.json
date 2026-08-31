@@ -1,12 +1,28 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/v1/(.*)",
-      "destination": "/backend/src/server.js"
+    "services": {
+        "frontend": {
+            "root": "frontend",
+            "framework": "vite"
+        },
+        "backend": {
+            "root": "backend",
+            "entrypoint": "src/server.js"
+        }
     },
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/frontend/$1"
-    }
-  ]
+    "rewrites": [
+        {
+            "source": "/api(/.*)?",
+            "destination": {
+                "type": "service",
+                "service": "backend"
+            }
+        },
+        {
+            "source": "/(.*)",
+            "destination": {
+                "type": "service",
+                "service": "frontend"
+            }
+        }
+    ]
 }
