@@ -28,8 +28,15 @@ const seedRoutes = require('./routes/seed.routes');
 
 const app = express();
 
-// Connect Database
-connectDB();
+// Connect Database middleware for serverless
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Middleware
 const allowedOrigins = [
