@@ -165,7 +165,6 @@ const Expenses = () => {
                 <tr>
                   <th className="p-4">Expense Title</th>
                   <th className="p-4">Category</th>
-                  <th className="p-4">Linked Vendor</th>
                   <th className="p-4 font-mono">Amount</th>
                   <th className="p-4">Payment Status</th>
                   <th className="p-4">Payment Date</th>
@@ -184,9 +183,6 @@ const Expenses = () => {
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap leading-none bg-amber-500/10 text-gold-300 border border-amber-500/20">
                         {exp.category}
                       </span>
-                    </td>
-                    <td className="p-4 text-gray-300">
-                      {exp.vendor?.name || '—'}
                     </td>
                     <td className="p-4 font-mono font-bold text-gold-300 text-sm">
                       ${exp.amount.toLocaleString()}
@@ -301,22 +297,6 @@ const Expenses = () => {
                 <option value="Partially Paid">Partially Paid</option>
                 <option value="Pending">Pending</option>
                 <option value="Overdue">Overdue</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block font-semibold uppercase text-gray-300 mb-1">Link Vendor (Optional)</label>
-              <select
-                value={formData.vendor}
-                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-                className="w-full p-2.5 bg-charcoal-800 border border-amber-500/20 rounded-xl text-white focus:outline-none focus:border-amber-500"
-              >
-                <option value="">None (Independent)</option>
-                {vendors.map((v) => (
-                  <option key={v._id} value={v._id}>
-                    {v.name} ({v.category})
-                  </option>
-                ))}
               </select>
             </div>
           </div>

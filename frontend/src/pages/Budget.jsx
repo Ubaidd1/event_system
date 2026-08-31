@@ -87,9 +87,9 @@ const Budget = () => {
           icon={CheckCircle2}
         />
         <StatCard
-          title="Pending Vendor Payments"
-          value={`$${pendingVendorPayments.toLocaleString()}`}
-          subtitle="Contract balances due"
+          title="Budget Status"
+          value={remainingBudget >= 0 ? 'On Track' : 'Over Limit'}
+          subtitle={remainingBudget >= 0 ? 'Under budget ceiling' : 'Expenses exceed budget'}
           icon={CreditCard}
         />
       </div>

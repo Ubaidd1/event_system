@@ -83,9 +83,9 @@ const Reports = () => {
           icon={DollarSign}
         />
         <StatCard
-          title="Vendor Contracts Total"
-          value={`$${financialAnalytics.totalVendorContract.toLocaleString()}`}
-          subtitle={`$${financialAnalytics.vendorPending.toLocaleString()} Pending Balance`}
+          title="Remaining Balance"
+          value={`$${financialAnalytics.remainingBudget.toLocaleString()}`}
+          subtitle="Available Unspent Funds"
           icon={TrendingUp}
         />
         <StatCard

@@ -396,6 +396,85 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Wedding / Event Details Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Edit Event & Host Details"
+      >
+        <form onSubmit={handleSaveWedding} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1">
+              Couple / Host Names *
+            </label>
+            <input
+              type="text"
+              required
+              value={editForm.coupleNames}
+              onChange={(e) => setEditForm({ ...editForm, coupleNames: e.target.value })}
+              placeholder="e.g. Abdullah & Sarah or Host Name"
+              className="w-full p-3 bg-charcoal-800 border border-amber-500/20 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500 font-serif"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1">
+              Event / Wedding Title
+            </label>
+            <input
+              type="text"
+              value={editForm.title}
+              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+              placeholder="e.g. Wedding Celebration, Annual Gala"
+              className="w-full p-3 bg-charcoal-800 border border-amber-500/20 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1">
+                Event Date
+              </label>
+              <input
+                type="date"
+                value={editForm.weddingDate}
+                onChange={(e) => setEditForm({ ...editForm, weddingDate: e.target.value })}
+                className="w-full p-3 bg-charcoal-800 border border-amber-500/20 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1">
+                Total Allocated Budget ($)
+              </label>
+              <input
+                type="number"
+                value={editForm.totalBudget}
+                onChange={(e) => setEditForm({ ...editForm, totalBudget: Number(e.target.value) })}
+                className="w-full p-3 bg-charcoal-800 border border-amber-500/20 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500 font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-amber-500/10">
+            <button
+              type="button"
+              onClick={() => setShowEditModal(false)}
+              className="px-4 py-2 text-xs font-semibold text-gray-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={savingWedding}
+              className="px-5 py-2.5 bg-gold-gradient text-charcoal-900 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:opacity-95"
+            >
+              {savingWedding ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
