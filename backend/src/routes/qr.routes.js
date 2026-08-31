@@ -1,11 +1,9 @@
 const express = require('express');
 const { verifyQRToken } = require('../controllers/qrController');
-const { verifyJWT } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.use(verifyJWT);
-
+// Public / Authenticated QR Verification endpoint
 router.post('/verify', verifyQRToken);
 
 module.exports = router;

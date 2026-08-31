@@ -308,7 +308,7 @@ const Guests = () => {
                       )}
                     </td>
                     <td className="p-4">
-                      <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-500/10 text-gold-300 border border-amber-500/20">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-amber-500/10 text-gold-300 border border-amber-500/20 shadow-sm">
                         {guest.category}
                       </span>
                     </td>
