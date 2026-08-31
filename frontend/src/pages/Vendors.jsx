@@ -155,7 +155,7 @@ const Vendors = () => {
               <div key={vendor._id} className="glass-card glass-card-hover p-6 rounded-2xl border border-amber-500/15 space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-gold-300 border border-amber-500/20">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap leading-none bg-amber-500/10 text-gold-300 border border-amber-500/20">
                       {vendor.category}
                     </span>
                     <h3 className="text-xl font-serif font-bold text-white mt-1">{vendor.name}</h3>

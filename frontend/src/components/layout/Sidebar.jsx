@@ -36,7 +36,6 @@ const Sidebar = () => {
     { name: 'QR Check-In', path: '/check-in', icon: QrCode, roles: ['Admin', 'Manager', 'Staff'], badge: 'Live Portal' },
     { name: 'Budget', path: '/budget', icon: DollarSign, roles: ['Admin', 'Manager'] },
     { name: 'Expenses', path: '/expenses', icon: Receipt, roles: ['Admin', 'Manager'] },
-    { name: 'Vendors', path: '/vendors', icon: Briefcase, roles: ['Admin', 'Manager'] },
     { name: 'Reports', path: '/reports', icon: BarChart3, roles: ['Admin', 'Manager'] },
     { name: 'Role & Audit Logs', path: '/security', icon: ShieldCheck, roles: ['Admin'] },
   ];

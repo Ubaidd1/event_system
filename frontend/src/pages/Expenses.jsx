@@ -181,7 +181,7 @@ const Expenses = () => {
                       {exp.notes && <p className="text-[10px] text-gray-400 font-normal">{exp.notes}</p>}
                     </td>
                     <td className="p-4">
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] bg-amber-500/10 text-gold-300 border border-amber-500/20">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap leading-none bg-amber-500/10 text-gold-300 border border-amber-500/20">
                         {exp.category}
                       </span>
                     </td>

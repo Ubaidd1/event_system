@@ -16,7 +16,6 @@ import PublicInvitation from './pages/PublicInvitation';
 import QRCheckIn from './pages/QRCheckIn';
 import Budget from './pages/Budget';
 import Expenses from './pages/Expenses';
-import Vendors from './pages/Vendors';
 import Reports from './pages/Reports';
 import SecurityLogs from './pages/SecurityLogs';
 
@@ -45,7 +44,6 @@ function App() {
                 <Route path="/invitations" element={<Invitations />} />
                 <Route path="/budget" element={<Budget />} />
                 <Route path="/expenses" element={<Expenses />} />
-                <Route path="/vendors" element={<Vendors />} />
                 <Route path="/reports" element={<Reports />} />
               </Route>
 

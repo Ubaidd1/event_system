@@ -29,7 +29,7 @@ const Badge = ({ status, variant }) => {
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStyle()}`}
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap leading-none border shadow-xs ${getStyle()}`}
     >
       {label}
     </span>

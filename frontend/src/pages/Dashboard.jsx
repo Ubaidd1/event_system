@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '../services/dashboardService';
+import { weddingService } from '../services/weddingService';
 import StatCard from '../components/common/StatCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Badge from '../components/common/Badge';
+import Modal from '../components/common/Modal';
 import {
   Users,
   UserCheck,
@@ -16,7 +18,7 @@ import {
   TrendingUp,
   Clock,
   Sparkles,
-  CreditCard
+  Edit
 } from 'lucide-react';
 import {
   PieChart,
@@ -37,6 +39,15 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    coupleNames: '',
+    title: '',
+    weddingDate: '',
+    totalBudget: 50000
+  });
+  const [savingWedding, setSavingWedding] = useState(false);
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -52,6 +63,31 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const handleOpenEdit = () => {
+    if (!data?.wedding) return;
+    setEditForm({
+      coupleNames: data.wedding.coupleNames || '',
+      title: data.wedding.title || 'Wedding Celebration',
+      weddingDate: data.wedding.weddingDate ? new Date(data.wedding.weddingDate).toISOString().split('T')[0] : '',
+      totalBudget: data.wedding.totalBudget || 50000
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveWedding = async (e) => {
+    e.preventDefault();
+    try {
+      setSavingWedding(true);
+      await weddingService.updateWedding(editForm);
+      setShowEditModal(false);
+      fetchDashboardData();
+    } catch (err) {
+      alert(err.message || 'Failed to update event details');
+    } finally {
+      setSavingWedding(false);
+    }
+  };
 
   if (loading) return <LoadingSpinner label="Fetching ShaadiSphere Analytics..." />;
 
@@ -81,18 +117,34 @@ const Dashboard = () => {
           <div className="space-y-2">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-gold-300 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5 fill-current" />
-              <span>Official Wedding Dashboard</span>
+              <span>Official Event & Wedding Dashboard</span>
             </div>
-            <h1 className="text-3xl lg:text-4xl font-serif font-bold text-white tracking-wide">
-              {data.wedding?.coupleNames || 'Abdullah & Sarah'}
-            </h1>
+            <div className="flex items-center space-x-3">
+              <h1 className="text-3xl lg:text-4xl font-serif font-bold text-white tracking-wide">
+                {data.wedding?.coupleNames || 'Couple / Host Name'}
+              </h1>
+              <button
+                onClick={handleOpenEdit}
+                className="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-gold-300 border border-amber-500/30 rounded-xl transition-colors"
+                title="Edit Event & Host Names"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+            </div>
             <p className="text-sm text-gray-300">
-              {data.wedding?.title || 'Wedding Celebration'} • 19 March 2027
+              {data.wedding?.title || 'Wedding Celebration'} • {data.wedding?.weddingDate ? new Date(data.wedding.weddingDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Event Date'}
             </p>
           </div>
 
           {/* Quick Actions Bar */}
           <div className="flex flex-wrap gap-2.5">
+            <button
+              onClick={handleOpenEdit}
+              className="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-gold-300 border border-amber-500/30 font-semibold rounded-xl text-xs flex items-center space-x-1.5 transition-colors"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Edit Details</span>
+            </button>
             <button
               onClick={() => navigate('/guests')}
               className="px-4 py-2.5 bg-gold-gradient text-charcoal-900 font-bold rounded-xl shadow-lg shadow-amber-500/20 hover:opacity-95 transition-all text-xs flex items-center space-x-1.5"
@@ -142,11 +194,11 @@ const Dashboard = () => {
           trend={`$${metrics.remainingBudget.toLocaleString()} Remaining`}
         />
         <StatCard
-          title="Pending Vendor Due"
-          value={`$${metrics.pendingVendorPayments.toLocaleString()}`}
-          subtitle="Outstanding balances"
-          icon={CreditCard}
-          trend="4 Active Vendors"
+          title="Entrance Check-Ins"
+          value={metrics.totalCheckIns || 0}
+          subtitle="Live Verified Passes"
+          icon={QrCode}
+          trend="Real-time Entrance Log"
         />
       </div>
 
